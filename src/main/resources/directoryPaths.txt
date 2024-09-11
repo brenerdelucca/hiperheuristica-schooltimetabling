@@ -1,0 +1,2 @@
+hiperHeuristicSolversDirectory=C:\Users\brene\Documents\hiperheuristica-schooltimetabling\src\main\resources
+timetableAlgorithmSolverDirectory=C:\Users\brene\Documents\Controle_De_Horarios\java-spring-boot\src\main\resources
