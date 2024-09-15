@@ -1,76 +1,77 @@
 package com.hiperheuristica.schooltimetabling.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hiperheuristica.schooltimetabling.choiceFunction.ChoiceFunction;
+import com.hiperheuristica.schooltimetabling.choiceFunction.heuristics.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
+import org.springframework.web.client.RestTemplate;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class HiperHeuristicService {
 
-    @Autowired
-    private ResourceLoader resourceLoader;
-
-    private final static String TIME_TABLE_ALGORITHM_SOLVER_DIRECTORY = "timetableAlgorithmSolverDirectory";
-    private final static String HIPER_HEURISTIC_SOLVERS_DIRECTORY = "hiperHeuristicSolversDirectory";
-
     public void start(){
-        changeSolver("lateAcceptance");
-    }
+        List<Heuristic> heuristics = new ArrayList<>();
+        heuristics.add(new GreatDeluge());
+        heuristics.add(new HillClimbing());
+        heuristics.add(new LateAcceptance());
+        heuristics.add(new SimulatedAnnealing());
+        heuristics.add(new StepCountingHillClimbing());
+        heuristics.add(new StrategicOscillation());
+        heuristics.add(new TabuSearch());
+        heuristics.add(new VariableNeighborhoodDescent());
 
-    public void changeSolver(String nextSolver) {
-        Map<String, String> directoryPaths = getDirectoryPaths();
+        ChoiceFunction choiceFunction = new ChoiceFunction(heuristics);
 
-        // Especifica o caminho do arquivo que você deseja deletar
-        Path origem = Paths.get((directoryPaths.get(HIPER_HEURISTIC_SOLVERS_DIRECTORY) + "/" + nextSolver + ".xml"));
-        Path destino = Paths.get((directoryPaths.get(TIME_TABLE_ALGORITHM_SOLVER_DIRECTORY) + "/solverConfig.xml"));
+        JsonNode b3 = getB3();
 
-        try {
-            // Move o arquivo para o novo diretório
-            Files.move(origem, destino, StandardCopyOption.REPLACE_EXISTING);
-            System.out.println("Solver alterado com sucesso.");
-        } catch (Exception e) {
-            System.out.println("Erro ao alterar solver.");
-            e.printStackTrace();
-        }
-    }
+        Heuristic selectedHeuristic = choiceFunction.selectHeuristic();
+        JsonNode solution = selectedHeuristic.apply(b3);
 
-    public Map<String, String> getDirectoryPaths(){
-        Map<String, String> paths = new HashMap<>();
+        //Atualizar a performance da heuristica
+        Performance performance = Performance.of(solution.get("score").asText());
+        selectedHeuristic.updatePerformance(performance);
 
-        try {
-            // Carrega o arquivo config.txt da pasta resources
-            Resource resource = resourceLoader.getResource("classpath:directoryPaths.txt");
+        for(int i = 0; i < 1000; i++) {
+            selectedHeuristic = choiceFunction.selectHeuristic();
+            solution = selectedHeuristic.apply(solution);
 
-            // Abre o arquivo e lê linha por linha
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8));
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                // Separa cada linha pelo símbolo '='
-                String[] parts = line.split("=", 2);
-                if (parts.length == 2) {
-                    String key = parts[0].trim();
-                    String value = parts[1].trim();
-                    paths.put(key, value);  // Adiciona ao mapa
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+            //Atualizar a performance da heuristica
+            performance = Performance.of(solution.get("score").asText());
+            selectedHeuristic.updatePerformance(performance);
         }
 
-        return paths;
+    }
+
+    public JsonNode getB3(){
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Accept", "application/json");
+
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        JsonNode b3 = null;
+        try {
+            b3 = objectMapper.readTree(restTemplate.exchange(
+                    "localhost:8080/demo-data/B3",
+                    HttpMethod.GET,
+                    request,
+                    String.class).getBody());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+        return b3;
     }
 
 }
