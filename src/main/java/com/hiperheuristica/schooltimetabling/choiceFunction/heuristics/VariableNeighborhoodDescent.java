@@ -1,33 +1,23 @@
 package com.hiperheuristica.schooltimetabling.choiceFunction.heuristics;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class VariableNeighborhoodDescent implements Heuristic {
 
+    private final String heuristicName = "variableNeighborhoodDescent";
     private List<Performance> performances = new ArrayList<>(List.of(new Performance(0, 0)));
     private Integer usageCount = 0;
 
     @Override
     public JsonNode apply(JsonNode solution) {
-        System.out.println("Iniciando execução do VariableNeighborhoodDescent.");
-
-        String newSolutionId = HeuristicHelper.startHeuristic(solution, "variableNeighborhoodDescent");
+        String newSolutionId = HeuristicHelper.startHeuristic(solution, heuristicName);
 
         HeuristicHelper.waitHeuristicExecution();
 
-        System.out.println("Execução do VariableNeighborhoodDescent finalizada.");
-
-        return HeuristicHelper.getSolution(newSolutionId);
+        return HeuristicHelper.getSolution(newSolutionId, heuristicName);
     }
 
     @Override

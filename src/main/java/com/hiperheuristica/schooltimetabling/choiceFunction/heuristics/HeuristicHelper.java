@@ -18,16 +18,22 @@ public class HeuristicHelper {
     private static final RestTemplate restTemplate = new RestTemplate();;
 
     public static String startHeuristic(JsonNode solution, String heuristic) {
+        System.out.println("Iniciando execução do " + heuristic + ".");
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<JsonNode> request = new HttpEntity<>(solution, headers);
 
-        return restTemplate.exchange(
+        String jobId = restTemplate.exchange(
                 "http://localhost:8080/timetables/" + heuristic,
                 HttpMethod.POST,
                 request,
                 String.class).getBody();
+
+        System.out.println("JobId: " + jobId);
+
+        return jobId;
     }
 
     public static void waitHeuristicExecution() {
@@ -39,7 +45,9 @@ public class HeuristicHelper {
         }
     }
 
-    public static JsonNode getSolution(String solutionId) {
+    public static JsonNode getSolution(String solutionId, String heuristic) {
+        System.out.println("Execução do " + heuristic + "finalizada.");
+
         ObjectMapper objectMapper = new ObjectMapper();
 
         JsonNode newSolution = null;
