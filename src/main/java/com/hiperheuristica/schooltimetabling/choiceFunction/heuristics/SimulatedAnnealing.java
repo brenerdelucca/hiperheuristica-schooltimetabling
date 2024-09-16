@@ -19,27 +19,15 @@ public class SimulatedAnnealing implements Heuristic {
 
     @Override
     public JsonNode apply(JsonNode solution) {
-        RestTemplate restTemplate = new RestTemplate();
+        System.out.println("Iniciando execução do Simulated Annealing.");
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        String newSolutionId = HeuristicHelper.startHeuristic(solution, "simulatedAnnealing");
 
-        HttpEntity<JsonNode> request = new HttpEntity<>(solution, headers);
+        HeuristicHelper.waitHeuristicExecution();
 
-        ObjectMapper objectMapper = new ObjectMapper();
+        System.out.println("Execução do Simulated Annealing finalizada.");
 
-        JsonNode newSolution = null;
-        try {
-            newSolution = objectMapper.readTree(restTemplate.exchange(
-                    "http://localhost:8080/timetables/simulatedAnnealing",
-                    HttpMethod.POST,
-                    request,
-                    String.class).getBody());
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-
-        return newSolution;
+        return HeuristicHelper.getSolution(newSolutionId);
     }
 
     @Override

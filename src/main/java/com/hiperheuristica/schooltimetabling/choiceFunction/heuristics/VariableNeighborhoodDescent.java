@@ -19,27 +19,15 @@ public class VariableNeighborhoodDescent implements Heuristic {
 
     @Override
     public JsonNode apply(JsonNode solution) {
-        RestTemplate restTemplate = new RestTemplate();
+        System.out.println("Iniciando execução do VariableNeighborhoodDescent.");
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        String newSolutionId = HeuristicHelper.startHeuristic(solution, "variableNeighborhoodDescent");
 
-        HttpEntity<JsonNode> request = new HttpEntity<>(solution, headers);
+        HeuristicHelper.waitHeuristicExecution();
 
-        ObjectMapper objectMapper = new ObjectMapper();
+        System.out.println("Execução do VariableNeighborhoodDescent finalizada.");
 
-        JsonNode newSolution = null;
-        try {
-            newSolution = objectMapper.readTree(restTemplate.exchange(
-                    "http://localhost:8080/timetables/variableNeighborhoodDescent",
-                    HttpMethod.POST,
-                    request,
-                    String.class).getBody());
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-
-        return newSolution;
+        return HeuristicHelper.getSolution(newSolutionId);
     }
 
     @Override

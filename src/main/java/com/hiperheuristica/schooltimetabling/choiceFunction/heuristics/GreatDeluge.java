@@ -19,27 +19,16 @@ public class GreatDeluge implements Heuristic {
 
     @Override
     public JsonNode apply(JsonNode solution) {
-        RestTemplate restTemplate = new RestTemplate();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        System.out.println("Iniciando execução do Great Deluge.");
 
-        HttpEntity<JsonNode> request = new HttpEntity<>(solution, headers);
+        String newSolutionId = HeuristicHelper.startHeuristic(solution, "greatDeluge");
 
-        ObjectMapper objectMapper = new ObjectMapper();
+        HeuristicHelper.waitHeuristicExecution();
 
-        JsonNode newSolution = null;
-        try {
-            newSolution = objectMapper.readTree(restTemplate.exchange(
-                    "http://localhost:8080/timetables/greatDeluge",
-                    HttpMethod.POST,
-                    request,
-                    String.class).getBody());
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        System.out.println("Execução do Great Deluge finalizada.");
 
-        return newSolution;
+        return HeuristicHelper.getSolution(newSolutionId);
     }
 
     @Override
