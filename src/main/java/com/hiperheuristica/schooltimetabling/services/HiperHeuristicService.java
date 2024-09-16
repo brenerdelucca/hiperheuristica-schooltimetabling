@@ -65,7 +65,7 @@ public class HiperHeuristicService {
         JsonNode b3 = null;
         try {
             b3 = objectMapper.readTree(restTemplate.exchange(
-                    "localhost:8080/demo-data/B3",
+                    "http://localhost:8080/demo-data/B3",
                     HttpMethod.GET,
                     request,
                     String.class).getBody());

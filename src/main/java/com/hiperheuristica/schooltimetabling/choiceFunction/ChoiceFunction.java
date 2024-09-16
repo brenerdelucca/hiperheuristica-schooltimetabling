@@ -45,6 +45,7 @@ public class ChoiceFunction {
     public static double calculatePureScore(Performance performance) {
         //implementar calculo que gera um score baseado na performance
 
-        return 0;
+        //usando somente o hard para testar a hiper-heuristica
+        return performance.getHard();
     }
 }

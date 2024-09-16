@@ -9,12 +9,13 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class LateAcceptance implements Heuristic {
 
-    private List<Performance> performances;
-    private Integer usageCount;
+    private List<Performance> performances = new ArrayList<>(List.of(new Performance(0, 0)));
+    private Integer usageCount = 0;
 
     @Override
     public JsonNode apply(JsonNode solution) {
@@ -29,7 +30,8 @@ public class LateAcceptance implements Heuristic {
 
         JsonNode newSolution = null;
         try {
-            newSolution = objectMapper.readTree(restTemplate.exchange("localhost:8080/timetables/lateAcceptance",
+            newSolution = objectMapper.readTree(restTemplate.exchange(
+                    "http://localhost:8080/timetables/lateAcceptance",
                     HttpMethod.POST,
                     request,
                     String.class).getBody());
