@@ -48,6 +48,8 @@ public class HiperHeuristicService {
             selectedHeuristic.updatePerformance(performance);
         }
 
+        //armazenar todos os resultados gerados em algum local
+
     }
 
     public JsonNode getB3(){

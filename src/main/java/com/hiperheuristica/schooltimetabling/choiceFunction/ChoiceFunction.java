@@ -36,9 +36,9 @@ public class ChoiceFunction {
         //Atualizar as pontuações com base no desempenho e frequência de uso
         for(int i=0; i < heuristics.size(); i++) {
             Heuristic heuristic = heuristics.get(i);
-            double performanceScore = calculatePureScore(heuristic.getPerformance());
+            double pureScore = calculatePureScore(heuristic.getPerformance());
             double usagePenalty = 1.0 / (1 + heuristic.getUsageCount()); //Penalidade pela frequência de uso
-            heuristicScores[i] = performanceScore * usagePenalty; //Score ajustado
+            heuristicScores[i] = pureScore * usagePenalty; //Score ajustado
         }
     }
 
