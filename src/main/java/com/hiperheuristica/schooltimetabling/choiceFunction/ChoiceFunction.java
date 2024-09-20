@@ -2,11 +2,14 @@ package com.hiperheuristica.schooltimetabling.choiceFunction;
 
 import com.hiperheuristica.schooltimetabling.choiceFunction.heuristics.Heuristic;
 import com.hiperheuristica.schooltimetabling.choiceFunction.heuristics.Performance;
+import lombok.Getter;
 
 import java.util.List;
 
 public class ChoiceFunction {
+    @Getter
     private List<Heuristic> heuristics;
+    @Getter
     private double[] heuristicScores;
 
     public ChoiceFunction(List<Heuristic> heuristics) {
@@ -32,20 +35,20 @@ public class ChoiceFunction {
         return selectedHeuristic;
     }
 
-    private void updateScores() {
+    public void updateScores() {
         //Atualizar as pontuações com base no desempenho e frequência de uso
         for(int i=0; i < heuristics.size(); i++) {
             Heuristic heuristic = heuristics.get(i);
             double pureScore = calculatePureScore(heuristic.getPerformance());
             double usagePenalty = 1.0 / (1 + heuristic.getUsageCount()); //Penalidade pela frequência de uso
-            heuristicScores[i] = pureScore * usagePenalty; //Score ajustado
+            heuristicScores[i] = pureScore / usagePenalty; //Score ajustado
         }
     }
 
     public static double calculatePureScore(Performance performance) {
-        //implementar calculo que gera um score baseado na performance
+        //calculo que gera um score baseado na performance
+        double normalizador = 1000.0;
 
-        //usando somente o hard para testar a hiper-heuristica
-        return performance.getHard();
+        return performance.getHard() + (performance.getSoft() / normalizador);
     }
 }

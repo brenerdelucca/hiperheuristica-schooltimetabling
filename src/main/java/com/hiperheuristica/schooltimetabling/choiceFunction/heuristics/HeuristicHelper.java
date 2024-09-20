@@ -10,6 +10,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 
 public class HeuristicHelper {
@@ -33,20 +35,30 @@ public class HeuristicHelper {
 
         System.out.println("JobId: " + jobId);
 
+        //Adiciona jobId e heuristica no CSV
+        try (FileWriter writer = new FileWriter("src/main/resources/csvs/log.csv", true)) {
+            writer.append(jobId)
+                    .append(";")
+                    .append(heuristic)
+                    .append(";");
+        } catch (IOException e) {
+            System.err.println("Erro ao adicionar jobId e heuristica no CSV: " + e.getMessage());
+        }
+
         return jobId;
     }
 
     public static void waitHeuristicExecution() {
-        //Faz a execução esperar por 2 minutos e 5 segundos até a heuristica terminar de rodar
+        //Faz a execução esperar
         try {
-            Thread.sleep(180000); // 2 minutos e 5 segundos
+            Thread.sleep(300000);
         } catch (InterruptedException e) {
             System.err.println("Erro ao esperar 3 minutos");
         }
     }
 
     public static JsonNode getSolution(String solutionId, String heuristic) {
-        System.out.println("Execução do " + heuristic + "finalizada.");
+        System.out.println("Execução do " + heuristic + " finalizada.");
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -65,6 +77,13 @@ public class HeuristicHelper {
                     String.class).getBody());
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
+        }
+
+        //Adiciona a melhor performance da heuristica no CSV
+        try (FileWriter writer = new FileWriter("src/main/resources/csvs/log.csv", true)) {
+            writer.append(newSolution.get("score").asText() + ";");
+        } catch (IOException e) {
+            System.err.println("Erro ao adicionar performance no CSV: " + e.getMessage());
         }
 
         return newSolution;

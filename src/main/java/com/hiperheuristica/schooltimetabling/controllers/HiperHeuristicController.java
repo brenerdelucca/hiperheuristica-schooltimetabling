@@ -20,9 +20,4 @@ public class HiperHeuristicController {
     public void start() {
         service.start();
     }
-
-    @GetMapping
-    public String teste() {
-        return "teste";
-    }
 }

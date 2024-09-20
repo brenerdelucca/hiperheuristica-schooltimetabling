@@ -11,6 +11,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +20,9 @@ import java.util.List;
 public class HiperHeuristicService {
 
     public void start(){
+        //Recria o arquivo CSV de log ao iniciar a aplicação
+        recriarArquivoCSV();
+
         List<Heuristic> heuristics = new ArrayList<>();
         heuristics.add(new GreatDeluge());
         heuristics.add(new HillClimbing());
@@ -39,16 +44,26 @@ public class HiperHeuristicService {
         Performance performance = Performance.of(solution.get("score").asText());
         selectedHeuristic.updatePerformance(performance);
 
-        for(int i = 0; i < 1000; i++) {
+        //Atualiza scores após iteração
+        choiceFunction.updateScores();
+
+        //Adiciona usageCount da heuristica
+        addScoreEUsageCountNoLog(choiceFunction, selectedHeuristic);
+
+        for(int i = 0; i < 20; i++) {
             selectedHeuristic = choiceFunction.selectHeuristic();
             solution = selectedHeuristic.apply(solution);
 
             //Atualizar a performance da heuristica
             performance = Performance.of(solution.get("score").asText());
             selectedHeuristic.updatePerformance(performance);
-        }
 
-        //armazenar todos os resultados gerados em algum local
+            //Atualiza scores após iteração
+            choiceFunction.updateScores();
+
+            //Adiciona usageCount da heuristica
+            addScoreEUsageCountNoLog(choiceFunction, selectedHeuristic);
+        }
 
     }
 
@@ -74,6 +89,33 @@ public class HiperHeuristicService {
         }
 
         return b3;
+    }
+
+    public static void addScoreEUsageCountNoLog(ChoiceFunction choiceFunction, Heuristic selectedHeuristic) {
+        try (FileWriter writer = new FileWriter("src/main/resources/csvs/log.csv", true)) {
+            for(int i=0; i<choiceFunction.getHeuristics().size(); i++) {
+                String oneHeuristicName = choiceFunction.getHeuristics().get(i).getClass().getSimpleName().toLowerCase();
+                String currentHeuristicName = selectedHeuristic.getClass().getSimpleName().toLowerCase();
+
+                if(oneHeuristicName.equals(currentHeuristicName)) {
+                    int currentHeuristicUsageCount = choiceFunction.getHeuristics().get(i).getUsageCount();
+                    double currentHeuristicScore = choiceFunction.getHeuristicScores()[i];
+                    writer.append(currentHeuristicUsageCount + ";" + currentHeuristicScore + "\n");
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Erro ao adicionar score e usageCount: " + e.getMessage());
+        }
+    }
+
+    public static void recriarArquivoCSV() {
+        try (FileWriter writer = new FileWriter("src/main/resources/csvs/log.csv")) {
+            // Adiciona cabeçalho no arquivo (se necessário)
+            writer.append("JobId;Heuristic;BestPerformace;UsageCount;Score\n");
+        } catch (IOException e) {
+            System.err.println("Erro ao recriar o arquivo CSV de log: " + e.getMessage());
+        }
     }
 
 }
