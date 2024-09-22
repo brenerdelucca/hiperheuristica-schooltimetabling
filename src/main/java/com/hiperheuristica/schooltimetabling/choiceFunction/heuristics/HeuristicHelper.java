@@ -48,12 +48,41 @@ public class HeuristicHelper {
         return jobId;
     }
 
-    public static void waitHeuristicExecution() {
-        //Faz a execução esperar
-        try {
-            Thread.sleep(300000);
-        } catch (InterruptedException e) {
-            System.err.println("Erro ao esperar 3 minutos");
+    public static void verifySolverStatus(String solutionId) {
+        boolean solving = true;
+
+        while (solving) {
+
+            //Faz a execução esperar
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                System.err.println("Erro ao esperar");
+            }
+
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            JsonNode solution = null;
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+
+            HttpEntity<JsonNode> request = new HttpEntity<>(headers);
+
+            try {
+                solution = objectMapper.readTree(restTemplate.exchange(
+                        "http://localhost:8080/timetables/" + solutionId,
+                        HttpMethod.GET,
+                        request,
+                        String.class).getBody());
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+
+            String solverStatus = solution.get("solverStatus").asText();
+            if (solverStatus.equals("NOT_SOLVING")) {
+                solving = false;
+            }
         }
     }
 

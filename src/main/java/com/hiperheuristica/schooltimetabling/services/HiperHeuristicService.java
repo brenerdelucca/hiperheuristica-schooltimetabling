@@ -13,6 +13,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +40,12 @@ public class HiperHeuristicService {
         JsonNode b3 = getB3();
 
         Heuristic selectedHeuristic = choiceFunction.selectHeuristic();
+
+        Instant start = Instant.now();
         JsonNode solution = selectedHeuristic.apply(b3);
+        Instant end = Instant.now();
+        long executionTime = Duration.between(start, end).getSeconds();
+        System.out.println("Tempo de execução(s): " + executionTime);
 
         //Atualizar a performance da heuristica
         Performance performance = Performance.of(solution.get("score").asText());
@@ -48,11 +55,16 @@ public class HiperHeuristicService {
         choiceFunction.updateScores();
 
         //Adiciona usageCount da heuristica
-        addScoreEUsageCountNoLog(choiceFunction, selectedHeuristic);
+        addUsageCountEScoreEExecutionTimeNoLog(choiceFunction, selectedHeuristic, executionTime);
 
-        for(int i = 0; i < 20; i++) {
+        for(int i = 0; i < 1000; i++) {
             selectedHeuristic = choiceFunction.selectHeuristic();
+
+            start = Instant.now();
             solution = selectedHeuristic.apply(solution);
+            end = Instant.now();
+            executionTime = Duration.between(start, end).getSeconds();
+            System.out.println("Tempo de execução(s): " + executionTime);
 
             //Atualizar a performance da heuristica
             performance = Performance.of(solution.get("score").asText());
@@ -62,7 +74,7 @@ public class HiperHeuristicService {
             choiceFunction.updateScores();
 
             //Adiciona usageCount da heuristica
-            addScoreEUsageCountNoLog(choiceFunction, selectedHeuristic);
+            addUsageCountEScoreEExecutionTimeNoLog(choiceFunction, selectedHeuristic, executionTime);
         }
 
     }
@@ -91,7 +103,7 @@ public class HiperHeuristicService {
         return b3;
     }
 
-    public static void addScoreEUsageCountNoLog(ChoiceFunction choiceFunction, Heuristic selectedHeuristic) {
+    public static void addUsageCountEScoreEExecutionTimeNoLog(ChoiceFunction choiceFunction, Heuristic selectedHeuristic, long executionTime) {
         try (FileWriter writer = new FileWriter("src/main/resources/csvs/log.csv", true)) {
             for(int i=0; i<choiceFunction.getHeuristics().size(); i++) {
                 String oneHeuristicName = choiceFunction.getHeuristics().get(i).getClass().getSimpleName().toLowerCase();
@@ -100,7 +112,7 @@ public class HiperHeuristicService {
                 if(oneHeuristicName.equals(currentHeuristicName)) {
                     int currentHeuristicUsageCount = choiceFunction.getHeuristics().get(i).getUsageCount();
                     double currentHeuristicScore = choiceFunction.getHeuristicScores()[i];
-                    writer.append(currentHeuristicUsageCount + ";" + currentHeuristicScore + "\n");
+                    writer.append(currentHeuristicUsageCount + ";" + currentHeuristicScore + ";" + executionTime + "\n");
                     break;
                 }
             }
@@ -112,7 +124,7 @@ public class HiperHeuristicService {
     public static void recriarArquivoCSV() {
         try (FileWriter writer = new FileWriter("src/main/resources/csvs/log.csv")) {
             // Adiciona cabeçalho no arquivo (se necessário)
-            writer.append("JobId;Heuristic;BestPerformace;UsageCount;Score\n");
+            writer.append("JobId;Heuristic;BestPerformace;UsageCount;Score;ExecutionTime(s)\n");
         } catch (IOException e) {
             System.err.println("Erro ao recriar o arquivo CSV de log: " + e.getMessage());
         }

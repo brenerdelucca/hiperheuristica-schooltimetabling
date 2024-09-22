@@ -15,7 +15,7 @@ public class HillClimbing implements Heuristic {
     public JsonNode apply(JsonNode solution) {
         String newSolutionId = HeuristicHelper.startHeuristic(solution, heuristicName);
 
-        HeuristicHelper.waitHeuristicExecution();
+        HeuristicHelper.verifySolverStatus(newSolutionId);
 
         return HeuristicHelper.getSolution(newSolutionId, heuristicName);
     }
