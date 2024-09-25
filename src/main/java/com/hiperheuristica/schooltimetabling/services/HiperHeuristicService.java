@@ -57,7 +57,7 @@ public class HiperHeuristicService {
         //Adiciona usageCount da heuristica
         addUsageCountEScoreEExecutionTimeNoLog(choiceFunction, selectedHeuristic, executionTime);
 
-        for(int i = 0; i < 1000; i++) {
+        for(int i = 0; i < 1000000000; i++) {
             selectedHeuristic = choiceFunction.selectHeuristic();
 
             start = Instant.now();
