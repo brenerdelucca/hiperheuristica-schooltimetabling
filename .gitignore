@@ -4,7 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-/src/main/resources/csvs
+/src/main/resources/csvs/log.csv
 
 ### STS ###
 .apt_generated
