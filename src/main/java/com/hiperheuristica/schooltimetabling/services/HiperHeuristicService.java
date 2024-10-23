@@ -15,6 +15,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +23,8 @@ import java.util.List;
 public class HiperHeuristicService {
 
     public void start(){
+        LocalDateTime inicioHH = LocalDateTime.now();
+
         //Recria o arquivo CSV de log ao iniciar a aplicação
         recriarArquivoCSV();
 
@@ -44,6 +47,7 @@ public class HiperHeuristicService {
         Instant start = Instant.now();
         JsonNode solution = selectedHeuristic.apply(b3);
         Instant end = Instant.now();
+        selectedHeuristic.setLastApplication(LocalDateTime.now());
         long executionTime = Duration.between(start, end).getSeconds();
         System.out.println("Tempo de execução(s): " + executionTime);
 
@@ -56,13 +60,13 @@ public class HiperHeuristicService {
 
         //Adiciona usageCount da heuristica
         addUsageCountEScoreEExecutionTimeNoLog(choiceFunction, selectedHeuristic, executionTime);
-
-        for(int i = 0; i < 1000000000; i++) {
+        while(Duration.between(inicioHH, LocalDateTime.now()).toHours() < 3) {
             selectedHeuristic = choiceFunction.selectHeuristic();
 
             start = Instant.now();
             solution = selectedHeuristic.apply(solution);
             end = Instant.now();
+            selectedHeuristic.setLastApplication(LocalDateTime.now());
             executionTime = Duration.between(start, end).getSeconds();
             System.out.println("Tempo de execução(s): " + executionTime);
 
@@ -76,6 +80,8 @@ public class HiperHeuristicService {
             //Adiciona usageCount da heuristica
             addUsageCountEScoreEExecutionTimeNoLog(choiceFunction, selectedHeuristic, executionTime);
         }
+
+        System.out.println("Execução da hiper-heurística finalizada.");
 
     }
 
