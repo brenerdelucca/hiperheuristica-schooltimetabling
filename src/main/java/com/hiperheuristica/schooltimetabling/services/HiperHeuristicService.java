@@ -29,8 +29,8 @@ public class HiperHeuristicService {
         recriarArquivoCSV();
 
         List<Heuristic> heuristics = new ArrayList<>();
-        heuristics.add(new GreatDeluge());
         heuristics.add(new HillClimbing());
+        heuristics.add(new GreatDeluge());
         heuristics.add(new LateAcceptance());
         heuristics.add(new SimulatedAnnealing());
         heuristics.add(new StepCountingHillClimbing());
