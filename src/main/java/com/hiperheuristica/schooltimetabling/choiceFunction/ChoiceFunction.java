@@ -6,6 +6,7 @@ import lombok.Getter;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -26,8 +27,11 @@ public class ChoiceFunction {
     }
 
     public Heuristic selectHeuristic() {
+        //lista vazia so pra passar pro metodo e não dar erro
+        List<HeuristicAndPerformance> listaVazia = new ArrayList<>();
+
         //Atualizar pontuações
-        updateScores();
+        updateScores(listaVazia);
 
         // Selecionar a heurística com a maior pontuação
         int bestIndex = 0;
@@ -43,12 +47,17 @@ public class ChoiceFunction {
         return selectedHeuristic;
     }
 
-    public void updateScores() {
+    public void updateScores(List<HeuristicAndPerformance> historic) {
         //Atualizar as pontuações com base no desempenho
         for(int i=0; i < heuristics.size(); i++) {
             Heuristic heuristic = heuristics.get(i);
             double pureScore = calculatePureScore(heuristic.getPerformance());
             heuristicScores[i] = pureScore / pesoF1;
+        }
+
+        //Atualizar a pontuação com base na dependencia entre heurísticas
+        if(historic.size() > 1){
+            updateScoreByRelation(historic);
         }
 
         //Atualizar as pontuações com base no tempo decorrido desde que uma heurística foi selecionada pela última vez
@@ -65,6 +74,31 @@ public class ChoiceFunction {
         double normalizador = 1000.0;
 
         return performance.getHard() + (performance.getSoft() / normalizador);
+    }
+
+    public void updateScoreByRelation(List<HeuristicAndPerformance> historic){
+        //execução anterior
+        HeuristicAndPerformance previousExecution = historic.get(historic.size() - 2);
+        Performance previousPerformance = previousExecution.getPerformance();
+
+        //execução de agora
+        HeuristicAndPerformance currentExecution = historic.get(historic.size() - 1);
+        Performance currentPerformance = currentExecution.getPerformance();
+
+        //calcula quanto melhoro da anterior pra atual
+        int hardDiff = Math.abs(previousPerformance.getHard()) - Math.abs(currentPerformance.getHard());
+        int softDiff = Math.abs(previousPerformance.getSoft() - currentPerformance.getSoft());
+
+        //pontuação baseada na melhoria da anterior pra atual
+        double normalizador = 1000.0;
+
+        double pointsBonusByRelation = hardDiff + (softDiff / normalizador);
+
+        for(int i = 0; i < heuristics.size(); i++){
+            if (heuristics.get(i).getClass().getSimpleName().equals(previousExecution.getHeuristicName())){
+                heuristicScores[i] += pesoF2 * pointsBonusByRelation;
+            }
+        }
     }
 
     public List<Long> getMinutesWithoutApplyPerHeuristic(){

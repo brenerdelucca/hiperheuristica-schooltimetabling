@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hiperheuristica.schooltimetabling.choiceFunction.ChoiceFunction;
+import com.hiperheuristica.schooltimetabling.choiceFunction.HeuristicAndPerformance;
 import com.hiperheuristica.schooltimetabling.choiceFunction.heuristics.*;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -55,12 +56,16 @@ public class HiperHeuristicService {
         Performance performance = Performance.of(solution.get("score").asText());
         selectedHeuristic.updatePerformance(performance);
 
+        //Adiciona nome da heuristica e sua performance ao historico
+        List<HeuristicAndPerformance> historic = new ArrayList<>();
+        historic.add(new HeuristicAndPerformance(selectedHeuristic.getClass().getSimpleName(), performance));
+
         //Atualiza scores após iteração
-        choiceFunction.updateScores();
+        choiceFunction.updateScores(historic);
 
         //Adiciona usageCount da heuristica
         addUsageCountEScoreEExecutionTimeNoLog(choiceFunction, selectedHeuristic, executionTime);
-        while(Duration.between(inicioHH, LocalDateTime.now()).toHours() < 3) {
+        while(Duration.between(inicioHH, LocalDateTime.now()).toHours() < 5) {
             selectedHeuristic = choiceFunction.selectHeuristic();
 
             start = Instant.now();
@@ -74,8 +79,11 @@ public class HiperHeuristicService {
             performance = Performance.of(solution.get("score").asText());
             selectedHeuristic.updatePerformance(performance);
 
+            //Adiciona nome da heuristica e sua performance ao historico
+            historic.add(new HeuristicAndPerformance(selectedHeuristic.getClass().getSimpleName(), performance));
+
             //Atualiza scores após iteração
-            choiceFunction.updateScores();
+            choiceFunction.updateScores(historic);
 
             //Adiciona usageCount da heuristica
             addUsageCountEScoreEExecutionTimeNoLog(choiceFunction, selectedHeuristic, executionTime);
